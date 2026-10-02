@@ -1,0 +1,33 @@
+name: API check
+
+on:
+  push:
+    paths: [".github/workflows/api-check.yml"]
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Probe airplanes.live
+        run: |
+          URL=https://api.airplanes.live/v2/point/40.6413/-73.7781/9
+          probe() {
+            echo "== $1"
+            code=$(curl -sS -m 20 -o body.txt -w "%{http_code}" "${@:2}" "$URL")
+            echo "status: $code"
+            head -c 300 body.txt; echo
+          }
+          probe "app UA" -A "PlaneCatcher/0.1.0 (Android; hobby app)"
+          probe "okhttp UA" -A "okhttp/4.12.0"
+          probe "no UA" -H "User-Agent:"
+          probe "browser UA" -A "Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0 Mobile Safari/537.36"
+          probe "curl default"
+          echo "== decimals check"
+          code=$(curl -sS -m 20 -o body.txt -w "%{http_code}" -A "okhttp/4.12.0" "https://api.airplanes.live/v2/point/40.6/-73.8/9"); echo "status: $code"
+          echo "== headers"
+          curl -sS -m 20 -D - -o /dev/null -A "PlaneCatcher/0.1.0 (Android; hobby app)" "$URL" | head -30
+      - name: Probe planespotters
+        run: |
+          curl -sS -m 20 -o body.txt -w "status: %{http_code}\n" -A "PlaneCatcher/0.1.0 (Android; hobby app)" https://api.planespotters.net/pub/photos/hex/a0b1c2
+          head -c 300 body.txt; echo
