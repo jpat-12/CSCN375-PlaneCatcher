@@ -233,7 +233,11 @@ private fun StatusLine(state: HomeUiState, inRangeCount: Int, onGrantLocation: (
             Text("PlaneCatcher needs your location to find planes above you.")
             Button(onClick = onGrantLocation) { Text("Allow location") }
         }
-        radar.center == null -> Text("Finding your location…", color = MaterialTheme.colorScheme.onSurfaceVariant)
+        radar.center == null -> Text(
+            "Finding your location… If this takes a while, make sure location is turned on for your device " +
+                "(on Windows: Settings → Privacy → Location). You can also use a Location Jump.",
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
         radar.error != null -> Notice(radar.error)
         radar.lastUpdatedMs == null -> Text("Scanning the sky…", color = MaterialTheme.colorScheme.onSurfaceVariant)
         else -> {
