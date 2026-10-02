@@ -1,19 +1,35 @@
 package com.planecatcher.data.remote
 
 import com.planecatcher.core.model.Aircraft
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonNames
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.intOrNull
 import retrofit2.http.GET
 import retrofit2.http.Path
 
 /**
- * airplanes.live REST API. Non-commercial use only, about 1 request per second.
- * https://airplanes.live/api-guide/
+ * adsb.fi open data API (primary source). Free for non-commercial use, about 1 request per second.
+ * https://github.com/adsbfi/opendata
  */
-interface AirplanesLiveApi {
+interface AdsbFiApi {
+    @GET("api/v2/lat/{lat}/lon/{lon}/dist/{radius}")
+    suspend fun point(
+        @Path("lat") lat: Double,
+        @Path("lon") lon: Double,
+        @Path("radius") radiusNm: Int,
+    ): PointResponse
+
+    companion object {
+        const val BASE_URL = "https://opendata.adsb.fi/"
+    }
+}
+
+/** adsb.lol API (backup source). Same readsb data format. https://api.adsb.lol/docs */
+interface AdsbLolApi {
     @GET("v2/point/{lat}/{lon}/{radius}")
     suspend fun point(
         @Path("lat") lat: Double,
@@ -22,14 +38,15 @@ interface AirplanesLiveApi {
     ): PointResponse
 
     companion object {
-        const val BASE_URL = "https://api.airplanes.live/"
+        const val BASE_URL = "https://api.adsb.lol/"
     }
 }
 
+/** adsb.lol calls the list "ac"; adsb.fi calls it "aircraft". */
+@OptIn(ExperimentalSerializationApi::class)
 @Serializable
 data class PointResponse(
-    val ac: List<AircraftDto> = emptyList(),
-    val now: Long? = null,
+    @JsonNames("aircraft") val ac: List<AircraftDto> = emptyList(),
 )
 
 @Serializable

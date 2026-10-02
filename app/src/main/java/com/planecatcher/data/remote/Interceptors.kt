@@ -14,11 +14,13 @@ class ServerTimeInterceptor(private val clock: TrustedClock) : Interceptor {
     }
 }
 
-/** Identifies the app to the APIs, as both services ask. */
+/** Identifies the app to the APIs. Planespotters requires a contact URL in the User-Agent. */
 class UserAgentInterceptor : Interceptor {
     override fun intercept(chain: Interceptor.Chain): Response = chain.proceed(
         chain.request().newBuilder()
-            .header("User-Agent", "PlaneCatcher/${BuildConfig.VERSION_NAME} (Android; hobby app)")
+            .header("User-Agent", "PlaneCatcher/${BuildConfig.VERSION_NAME} (+$CONTACT_URL)")
             .build(),
     )
 }
+
+const val CONTACT_URL = "https://github.com/jpat-12/CSCN375-PlaneCatcher"

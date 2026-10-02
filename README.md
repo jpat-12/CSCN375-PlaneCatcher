@@ -1,6 +1,6 @@
 # PlaneCatcher
 
-A plane-collecting hobby app for Android. Real aircraft flying within 10 miles show up on a radar. Answer a multiple-choice question about a plane to catch it, then build a collection ranked by rarity. Plane data comes from [airplanes.live](https://airplanes.live) and photos from [planespotters.net](https://www.planespotters.net).
+A plane-collecting hobby app for Android. Real aircraft flying within 10 miles show up on a radar. Answer a multiple-choice question about a plane to catch it, then build a collection ranked by rarity. Plane data comes from [adsb.fi](https://adsb.fi) (with [adsb.lol](https://adsb.lol) as a backup) and photos from [planespotters.net](https://www.planespotters.net).
 
 CSCN 375 project by Nathaniel Cash and Robert Vander Pyl.
 
@@ -8,7 +8,7 @@ CSCN 375 project by Nathaniel Cash and Robert Vander Pyl.
 
 | Feature | Where |
 | --- | --- |
-| Live planes within 10 mi (query 9 nm, filter on device with Haversine), poll every 30 s, back off 60 s on errors or HTTP 429 | `domain/RadarTracker.kt`, `core/radar/Radar.kt` |
+| Live planes within 10 mi from adsb.fi (query 9 nm, filter on device with Haversine), poll every 30 s, back off 60 s on errors or HTTP 429 | `domain/RadarTracker.kt`, `core/radar/Radar.kt` |
 | Radar view with sweep, tier-coloured blips and a nearby list | `ui/home/` |
 | Pop-up with photo, photographer credit, type, callsign and tier; silhouette when there's no photo | `ui/home/PlanePopup.kt` |
 | Quiz gate: 4 options, curated questions for popular types, generated fallback (model, maker, engines, seats, airline, registration country, altitude) | `core/quiz/` |
@@ -52,7 +52,7 @@ All tunable numbers live in `core/src/main/kotlin/com/planecatcher/core/rules/Ga
 
 ## Notes and limits
 
-- airplanes.live is free for non-commercial use only, with no uptime guarantee and about 1 request per second. The app spaces requests at least 2 s apart. A public release would need a licensed data source or a small proxy server.
+- adsb.fi is free for personal, non-commercial use, with no uptime guarantee and about 1 request per second. If it fails, the app tries adsb.lol. (The outline's original source, airplanes.live, now needs approval by email before its API can be used.) The app spaces requests at least 2 s apart. A public release would need a licensed data source or a small proxy server.
 - Without a backend, the jump cooldown uses server `Date` headers plus `elapsedRealtime`, so changing the phone clock doesn't reset it. A reboot while offline falls back to the phone clock, but never earlier than the last trusted time.
 - The feature is called "Location Jump" everywhere and doesn't use `VpnService`, in line with Google Play's VPN policy.
 - Not built yet (outline phases 5 and 6): sounds, cloud sync and accounts, leaderboards, missions.

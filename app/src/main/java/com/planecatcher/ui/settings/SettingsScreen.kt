@@ -92,7 +92,7 @@ fun SettingsScreen(vm: SettingsViewModel = hiltViewModel()) {
         )
 
         Section("Data and credits")
-        Link("Flight data: airplanes.live (non-commercial use)") { uri.openUri("https://airplanes.live") }
+        Link("Flight data: adsb.fi (backup: adsb.lol)") { uri.openUri("https://adsb.fi") }
         Link("Aircraft photos: planespotters.net and their photographers") { uri.openUri("https://www.planespotters.net") }
         Text(
             "Airline and aircraft names are used only to describe real aircraft. PlaneCatcher is not affiliated with any airline or manufacturer.",
@@ -101,7 +101,7 @@ fun SettingsScreen(vm: SettingsViewModel = hiltViewModel()) {
 
         Section("Privacy")
         Text(
-            "Your location is used on this phone to find planes near you. It is sent to airplanes.live only as " +
+            "Your location is used on this phone to find planes near you. It is sent to adsb.fi (or adsb.lol) only as " +
                 "coordinates in plane-data requests, rounded to about 10 metres. Your collection is stored only on this " +
                 "device and works offline. There are no accounts or ads.",
             color = MaterialTheme.colorScheme.onSurfaceVariant,

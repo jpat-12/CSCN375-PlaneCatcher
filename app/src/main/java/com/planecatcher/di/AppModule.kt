@@ -6,13 +6,14 @@ import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.planecatcher.BuildConfig
 import com.planecatcher.core.quiz.QuizGenerator
-import com.planecatcher.data.AirplanesLiveRepository
+import com.planecatcher.data.AdsbRepository
 import com.planecatcher.data.PlaneRepository
 import com.planecatcher.data.local.AppDatabase
 import com.planecatcher.data.local.CaughtPlaneDao
 import com.planecatcher.data.local.NearbyCacheDao
 import com.planecatcher.data.local.QuizLockDao
-import com.planecatcher.data.remote.AirplanesLiveApi
+import com.planecatcher.data.remote.AdsbFiApi
+import com.planecatcher.data.remote.AdsbLolApi
 import com.planecatcher.data.remote.PlanespottersApi
 import com.planecatcher.data.remote.ServerTimeInterceptor
 import com.planecatcher.data.remote.UserAgentInterceptor
@@ -79,8 +80,13 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideAirplanesLiveApi(client: OkHttpClient, json: Json): AirplanesLiveApi =
-        retrofit(AirplanesLiveApi.BASE_URL, client, json).create(AirplanesLiveApi::class.java)
+    fun provideAdsbFiApi(client: OkHttpClient, json: Json): AdsbFiApi =
+        retrofit(AdsbFiApi.BASE_URL, client, json).create(AdsbFiApi::class.java)
+
+    @Provides
+    @Singleton
+    fun provideAdsbLolApi(client: OkHttpClient, json: Json): AdsbLolApi =
+        retrofit(AdsbLolApi.BASE_URL, client, json).create(AdsbLolApi::class.java)
 
     @Provides
     @Singleton
@@ -109,5 +115,5 @@ object AppModule {
 @InstallIn(SingletonComponent::class)
 abstract class BindingsModule {
     @Binds
-    abstract fun bindPlaneRepository(impl: AirplanesLiveRepository): PlaneRepository
+    abstract fun bindPlaneRepository(impl: AdsbRepository): PlaneRepository
 }

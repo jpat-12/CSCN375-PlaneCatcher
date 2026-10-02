@@ -1,7 +1,7 @@
 package com.planecatcher.core.model
 
 /**
- * One aircraft as reported by the live data source (airplanes.live).
+ * One aircraft as reported by the live data source (adsb.fi / adsb.lol).
  * Only [hex] and a position are guaranteed; every other field may be missing.
  */
 data class Aircraft(

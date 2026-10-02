@@ -49,7 +49,7 @@ data class RadarState(
 )
 
 /**
- * Polls airplanes.live around the radar centre (device location, or the jump target
+ * Polls the ADS-B data source around the radar centre (device location, or the jump target
  * while a Location Jump is active) and publishes the planes within catch range.
  *
  * It runs only while someone holds it: the visible Home screen, or the background

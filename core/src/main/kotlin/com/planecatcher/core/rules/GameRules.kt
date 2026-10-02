@@ -9,7 +9,7 @@ object GameRules {
     const val CATCH_RANGE_MILES = 10.0
 
     /**
-     * The airplanes.live API takes a radius in nautical miles. 10 mi is about 8.69 nm,
+     * The ADS-B API takes a radius in nautical miles. 10 mi is about 8.69 nm,
      * so we ask for a little more and filter precisely on the device.
      */
     val QUERY_RADIUS_NM: Int = ceil(Geo.milesToNauticalMiles(CATCH_RANGE_MILES)).toInt()
