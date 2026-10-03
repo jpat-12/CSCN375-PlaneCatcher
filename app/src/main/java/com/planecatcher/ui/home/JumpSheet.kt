@@ -4,8 +4,9 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -14,6 +15,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Surface
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -34,6 +37,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import com.planecatcher.core.model.GeoPoint
 import com.planecatcher.core.rules.JumpDestinations
 import com.planecatcher.core.rules.JumpTarget
@@ -45,7 +50,7 @@ fun JumpSheet(onPick: (JumpTarget) -> Unit, onDismiss: () -> Unit) {
     var tab by remember { mutableIntStateOf(0) }
     var query by remember { mutableStateOf("") }
     var pin by remember { mutableStateOf<GeoPoint?>(null) }
-    // Fully expanded so the map gets room and isn't fighting the sheet's drag gesture.
+    var showMap by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     ModalBottomSheet(
@@ -91,19 +96,41 @@ fun JumpSheet(onPick: (JumpTarget) -> Unit, onDismiss: () -> Unit) {
                 }
             }
         } else {
-            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Column(Modifier.padding(16.dp).padding(bottom = 24.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 Text(
-                    "Tap anywhere to drop a pin. Busy airports and big cities have the most planes.",
+                    "Open the world map and tap anywhere to drop a pin. Busy airports and big cities have the most planes.",
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
-                MapPicker(selected = pin, onPick = { pin = it }, modifier = Modifier.fillMaxWidth().height(380.dp))
-                Text("Map © OpenStreetMap contributors", style = MaterialTheme.typography.labelSmall)
-                Row {
-                    Button(
-                        onClick = { pin?.let { confirm = JumpDestinations.custom(it) } },
-                        enabled = pin != null,
-                        modifier = Modifier.fillMaxWidth(),
-                    ) { Text(if (pin == null) "Tap the map first" else "Jump here") }
+                Button(onClick = { showMap = true }, modifier = Modifier.fillMaxWidth()) { Text("Open world map") }
+            }
+        }
+    }
+
+    if (showMap) {
+        // Full screen, so map drags never fight the bottom sheet's own drag gesture.
+        Dialog(onDismissRequest = { showMap = false }, properties = DialogProperties(usePlatformDefaultWidth = false)) {
+            Surface(Modifier.fillMaxSize()) {
+                Column(Modifier.fillMaxSize().safeDrawingPadding()) {
+                    Text(
+                        "Tap to drop a pin, pinch to zoom",
+                        style = MaterialTheme.typography.titleMedium,
+                        modifier = Modifier.padding(16.dp),
+                    )
+                    MapPicker(selected = pin, onPick = { pin = it }, modifier = Modifier.fillMaxWidth().weight(1f))
+                    Text("Map © OpenStreetMap contributors", style = MaterialTheme.typography.labelSmall, modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp))
+                    Row(Modifier.padding(16.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        OutlinedButton(onClick = { showMap = false }, modifier = Modifier.weight(1f)) { Text("Cancel") }
+                        Button(
+                            onClick = {
+                                pin?.let {
+                                    showMap = false
+                                    confirm = JumpDestinations.custom(it)
+                                }
+                            },
+                            enabled = pin != null,
+                            modifier = Modifier.weight(1f),
+                        ) { Text(if (pin == null) "Tap the map" else "Jump here") }
+                    }
                 }
             }
         }
