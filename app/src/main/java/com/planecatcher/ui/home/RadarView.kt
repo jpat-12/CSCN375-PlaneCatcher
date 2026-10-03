@@ -24,7 +24,8 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.planecatcher.core.radar.NearbyPlane
 import com.planecatcher.core.rules.GameRules
-import com.planecatcher.ui.theme.RadarGreen
+import androidx.compose.material3.MaterialTheme
+import com.planecatcher.core.model.Tier
 import com.planecatcher.ui.theme.color
 import kotlin.math.cos
 import kotlin.math.hypot
@@ -49,8 +50,11 @@ fun RadarView(
         animationSpec = infiniteRepeatable(tween(4_000, easing = LinearEasing), RepeatMode.Restart),
         label = "sweepAngle",
     )
-    val ringColor = RadarGreen.copy(alpha = 0.45f)
-    val centerColor = if (isJump) Color(0xFFFFB74D) else Color.White
+    val accent = MaterialTheme.colorScheme.primary
+    val ringColor = accent.copy(alpha = 0.45f)
+    val centerColor = if (isJump) Color(0xFFFF8F00) else MaterialTheme.colorScheme.onBackground
+    // Tier colours depend on the theme, so read them here rather than inside the draw block.
+    val tierColors = Tier.entries.associateWith { it.color }
 
     Canvas(
         modifier
@@ -85,23 +89,24 @@ fun RadarView(
                 brush = Brush.sweepGradient(
                     0f to Color.Transparent,
                     0.85f to Color.Transparent,
-                    1f to RadarGreen.copy(alpha = 0.35f),
+                    1f to accent.copy(alpha = 0.35f),
                     center = c,
                 ),
                 radius = radius,
                 center = c,
             )
-            drawLine(RadarGreen, c, Offset(c.x + radius, c.y), 2.dp.toPx())
+            drawLine(accent, c, Offset(c.x + radius, c.y), 2.dp.toPx())
         }
 
         for (p in planes) {
             val pos = blipPosition(p, c, radius)
             val caught = p.hex in caughtHexes
+            val tc = tierColors.getValue(p.tier)
             if (caught) {
-                drawCircle(p.tier.color, 6.dp.toPx(), pos, style = Stroke(2.dp.toPx()))
+                drawCircle(tc, 6.dp.toPx(), pos, style = Stroke(2.dp.toPx()))
             } else {
-                drawCircle(p.tier.color.copy(alpha = 0.3f), 12.dp.toPx(), pos)
-                drawCircle(p.tier.color, 6.dp.toPx(), pos)
+                drawCircle(tc.copy(alpha = 0.3f), 12.dp.toPx(), pos)
+                drawCircle(tc, 6.dp.toPx(), pos)
             }
         }
 

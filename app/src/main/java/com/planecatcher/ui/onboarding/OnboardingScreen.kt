@@ -30,16 +30,18 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.planecatcher.R
 
 /** Explains the app, then asks for location, then notifications (Android 13+). */
 @Composable
-fun OnboardingScreen(onFinished: () -> Unit) {
+fun OnboardingScreen(onFinished: () -> Unit, vm: OnboardingViewModel = hiltViewModel()) {
+    // Steps: 0 welcome, 1 practice catch, 2 location, 3 notifications (Android 13+ only).
     var step by rememberSaveable { mutableIntStateOf(0) }
     val needsNotificationStep = Build.VERSION.SDK_INT >= 33
 
     fun next() {
-        val last = if (needsNotificationStep) 2 else 1
+        val last = if (needsNotificationStep) 3 else 2
         if (step >= last) onFinished() else step++
     }
 
@@ -59,11 +61,13 @@ fun OnboardingScreen(onFinished: () -> Unit) {
         verticalArrangement = Arrangement.spacedBy(18.dp, Alignment.CenterVertically),
     ) {
         Spacer(Modifier.size(24.dp))
-        Image(
-            painter = painterResource(R.drawable.app_logo),
-            contentDescription = null,
-            modifier = Modifier.size(140.dp).clip(RoundedCornerShape(32.dp)),
-        )
+        if (step != 1) {
+            Image(
+                painter = painterResource(R.drawable.app_logo),
+                contentDescription = null,
+                modifier = Modifier.size(140.dp).clip(RoundedCornerShape(32.dp)),
+            )
+        }
         when (step) {
             0 -> {
                 Title("Catch the planes above you")
@@ -77,7 +81,8 @@ fun OnboardingScreen(onFinished: () -> Unit) {
                 Body("Please never play while driving. Planes come to you; you don't need to chase them.")
                 Button(onClick = ::next, modifier = Modifier.fillMaxWidth()) { Text("Get started") }
             }
-            1 -> {
+            1 -> TutorialCatch(onPlay = vm::play, onDone = ::next)
+            2 -> {
                 Title("Find planes near you")
                 Body(
                     "PlaneCatcher uses your location to look up aircraft overhead. It is only used while " +

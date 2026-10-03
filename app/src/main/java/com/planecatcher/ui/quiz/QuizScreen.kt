@@ -155,6 +155,7 @@ private fun Caught(s: QuizUiState.Caught, onDone: () -> Unit, onView: () -> Unit
             style = MaterialTheme.typography.titleLarge,
         )
         Text("+${p.points} ${if (p.points == 1) "point" else "points"}", style = MaterialTheme.typography.titleMedium)
+        s.rewards?.let { RewardsCard(it) }
         if (p.jumpCode != null) {
             Text(
                 "Your Location Jump has ended. The next one unlocks in 24 hours.",
@@ -165,6 +166,27 @@ private fun Caught(s: QuizUiState.Caught, onDone: () -> Unit, onView: () -> Unit
         PlanePhoto(p.photoUrl, p.tier, Modifier.fillMaxWidth().aspectRatio(16f / 9f))
         Button(onClick = onView, modifier = Modifier.fillMaxWidth()) { Text("View in collection") }
         OutlinedButton(onClick = onDone, modifier = Modifier.fillMaxWidth()) { Text("Back to radar") }
+    }
+}
+
+@Composable
+private fun RewardsCard(r: com.planecatcher.domain.Rewards) {
+    androidx.compose.material3.Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = androidx.compose.material3.CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.primaryContainer,
+        ),
+    ) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            r.levelUpTo?.let {
+                Text(
+                    "Level up! You're now level $it: ${com.planecatcher.core.progress.Levels.titleFor(it)}",
+                    style = MaterialTheme.typography.titleMedium,
+                )
+            }
+            r.challengesDone.forEach { (title, pts) -> Text("Daily challenge done: $title (+$pts)") }
+            r.setsDone.forEach { (name, pts) -> Text("Set complete: $name (+$pts)") }
+        }
     }
 }
 

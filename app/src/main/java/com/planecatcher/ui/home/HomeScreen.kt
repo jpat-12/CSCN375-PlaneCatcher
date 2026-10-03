@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.LocalFireDepartment
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.TravelExplore
@@ -31,6 +32,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
@@ -43,6 +45,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -51,7 +55,9 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.planecatcher.core.catalog.AircraftCatalog
+import com.planecatcher.core.progress.ProgressSummary
 import com.planecatcher.core.radar.NearbyPlane
+import com.planecatcher.core.rules.JumpDestinations
 import com.planecatcher.core.rules.JumpStatus
 import com.planecatcher.ui.common.TierBadge
 import com.planecatcher.ui.common.formatAltitude
@@ -64,9 +70,18 @@ fun HomeScreen(
     requestedHex: String?,
     onRequestHandled: () -> Unit,
     onStartCatch: (String) -> Unit,
+    onOpenProgress: () -> Unit,
     vm: HomeViewModel = hiltViewModel(),
 ) {
     val state by vm.state.collectAsStateWithLifecycle()
+    val progress by vm.progress.collectAsStateWithLifecycle()
+
+    // Keep the screen awake while the radar is open, if the user wants that.
+    val view = LocalView.current
+    DisposableEffect(view, state.settings.keepScreenOn) {
+        view.keepScreenOn = state.settings.keepScreenOn
+        onDispose { view.keepScreenOn = false }
+    }
     var showJumpSheet by remember { mutableStateOf(false) }
 
     // Poll only while this screen is on screen.
@@ -117,6 +132,8 @@ fun HomeScreen(
                 IconButton(onClick = vm::refresh) { Icon(Icons.Filled.Refresh, contentDescription = "Refresh now") }
             }
         }
+
+        progress?.let { p -> item { ProgressStrip(p, onOpenProgress) } }
 
         item { JumpCard(state.jump, onOpen = { showJumpSheet = true }, onEnd = vm::endJump) }
 
@@ -191,6 +208,28 @@ fun HomeScreen(
 }
 
 @Composable
+private fun ProgressStrip(p: ProgressSummary, onClick: () -> Unit) {
+    val done = p.today.count { it.complete }
+    Card(
+        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+    ) {
+        Column(Modifier.padding(horizontal = 16.dp, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text("Lv ${p.level.level} · ${p.level.title}", style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
+                Icon(Icons.Filled.LocalFireDepartment, contentDescription = "Streak", tint = Color(0xFFFF8A3D))
+                Text(" ${p.streakDays}", style = MaterialTheme.typography.titleMedium)
+                Text("   $done/${p.today.size} today", color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            LinearProgressIndicator(
+                progress = { p.level.fraction },
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
+    }
+}
+
+@Composable
 private fun JumpCard(status: JumpStatus, onOpen: () -> Unit, onEnd: () -> Unit) {
     val active = status is JumpStatus.Active
     Card(
@@ -203,7 +242,10 @@ private fun JumpCard(status: JumpStatus, onOpen: () -> Unit, onEnd: () -> Unit) 
             Column(Modifier.weight(1f).padding(horizontal = 12.dp)) {
                 when (status) {
                     is JumpStatus.Active -> {
-                        Text("Jumped to ${status.target.code}", style = MaterialTheme.typography.titleMedium)
+                        Text(
+                            if (status.target.code == JumpDestinations.CUSTOM_CODE) "Jumped to your map pin" else "Jumped to ${status.target.code}",
+                            style = MaterialTheme.typography.titleMedium,
+                        )
                         Text("Ends in ${formatDuration(status.remainingMs)} or on your next catch")
                     }
                     is JumpStatus.Cooldown -> {

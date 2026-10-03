@@ -29,4 +29,19 @@ class SettingsViewModel @Inject constructor(private val prefs: UserPrefs) : View
     fun setBackgroundRadar(v: Boolean) {
         viewModelScope.launch { prefs.setBackgroundRadar(v) }
     }
+    fun setSounds(v: Boolean) {
+        viewModelScope.launch { prefs.setSounds(v) }
+    }
+    fun setHaptics(v: Boolean) {
+        viewModelScope.launch { prefs.setHaptics(v) }
+    }
+    fun setSunlight(v: Boolean) {
+        viewModelScope.launch { prefs.setSunlightMode(v) }
+    }
+    fun setLargeText(v: Boolean) {
+        viewModelScope.launch { prefs.setLargeText(v) }
+    }
+    fun setKeepScreenOn(v: Boolean) {
+        viewModelScope.launch { prefs.setKeepScreenOn(v) }
+    }
 }

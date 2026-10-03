@@ -16,7 +16,12 @@ import com.planecatcher.data.local.NearbyCacheDao
 import com.planecatcher.data.time.TrustedClock
 import com.planecatcher.domain.CatchManager
 import com.planecatcher.domain.CatchResult
+import com.planecatcher.domain.ProgressRepository
 import com.planecatcher.domain.RadarTracker
+import com.planecatcher.domain.Rewards
+import com.planecatcher.feedback.Feedback
+import com.planecatcher.feedback.Sfx
+import kotlinx.coroutines.delay
 import com.planecatcher.domain.ticker
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -40,7 +45,7 @@ sealed interface QuizUiState {
         val photo: PlanePhoto?,
         val submitting: Boolean = false,
     ) : QuizUiState
-    data class Caught(val plane: CaughtPlaneEntity) : QuizUiState
+    data class Caught(val plane: CaughtPlaneEntity, val rewards: Rewards? = null) : QuizUiState
     data class Missed(
         val question: QuizQuestion,
         val chosenIndex: Int,
@@ -59,6 +64,8 @@ class QuizViewModel @Inject constructor(
     private val tiers: TierProvider,
     private val photos: PhotoRepository,
     private val clock: TrustedClock,
+    private val progress: ProgressRepository,
+    private val feedback: Feedback,
 ) : ViewModel() {
     private val hex: String = checkNotNull(savedState["hex"])
 
@@ -116,6 +123,7 @@ class QuizViewModel @Inject constructor(
         _state.value = asking.copy(submitting = true)
         viewModelScope.launch {
             val radar = tracker.state.value
+            val before = progress.current()
             val result = catchManager.submit(
                 plane = asking.plane,
                 question = asking.question,
@@ -123,9 +131,20 @@ class QuizViewModel @Inject constructor(
                 catchCenter = radar.center ?: asking.plane.aircraft.position,
                 jumpCode = radar.jumpTarget?.code,
             )
-            _state.value = when (result) {
-                is CatchResult.Caught -> QuizUiState.Caught(result.plane)
-                is CatchResult.Missed -> QuizUiState.Missed(asking.question, choice, result.retryAtMs)
+            when (result) {
+                is CatchResult.Caught -> {
+                    val rewards = Rewards.between(before, progress.current())
+                    _state.value = QuizUiState.Caught(result.plane, rewards.takeIf { it.any })
+                    feedback.play(Sfx.CATCH)
+                    if (rewards.any) {
+                        delay(900)
+                        feedback.play(Sfx.REWARD)
+                    }
+                }
+                is CatchResult.Missed -> {
+                    _state.value = QuizUiState.Missed(asking.question, choice, result.retryAtMs)
+                    feedback.play(Sfx.MISS)
+                }
             }
         }
     }

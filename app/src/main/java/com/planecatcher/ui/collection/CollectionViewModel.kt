@@ -6,7 +6,9 @@ import androidx.lifecycle.viewModelScope
 import com.planecatcher.core.model.Tier
 import com.planecatcher.data.local.CaughtPlaneDao
 import com.planecatcher.data.local.CaughtPlaneEntity
+import com.planecatcher.core.progress.ProgressSummary
 import com.planecatcher.data.prefs.UserPrefs
+import com.planecatcher.domain.ProgressRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -29,7 +31,13 @@ data class CollectionUiState(
 )
 
 @HiltViewModel
-class CollectionViewModel @Inject constructor(dao: CaughtPlaneDao) : ViewModel() {
+class CollectionViewModel @Inject constructor(
+    dao: CaughtPlaneDao,
+    progressRepository: ProgressRepository,
+) : ViewModel() {
+    val progress: StateFlow<ProgressSummary?> = progressRepository.summary
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+
     private val filter = MutableStateFlow<Tier?>(null)
     private val sort = MutableStateFlow(CollectionSort.NEWEST)
 

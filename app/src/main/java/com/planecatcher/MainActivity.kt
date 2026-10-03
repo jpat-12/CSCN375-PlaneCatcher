@@ -4,7 +4,10 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.SystemBarStyle
 import androidx.activity.enableEdgeToEdge
+import android.graphics.Color as AndroidColor
+import androidx.compose.runtime.LaunchedEffect
 import androidx.activity.viewModels
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -63,8 +66,18 @@ class MainActivity : ComponentActivity() {
         }
 
         setContent {
-            PlaneCatcherTheme {
-                val settings by vm.settings.collectAsStateWithLifecycle()
+            val settings by vm.settings.collectAsStateWithLifecycle()
+            val sunlight = settings?.sunlightMode == true
+            // Match the status-bar icons to the theme (dark icons on the white sunlight theme).
+            LaunchedEffect(sunlight) {
+                val style = if (sunlight) {
+                    SystemBarStyle.light(AndroidColor.WHITE, AndroidColor.WHITE)
+                } else {
+                    SystemBarStyle.dark(AndroidColor.TRANSPARENT)
+                }
+                enableEdgeToEdge(statusBarStyle = style, navigationBarStyle = style)
+            }
+            PlaneCatcherTheme(sunlight = sunlight, largeText = settings?.largeText == true) {
                 val requestedHex by vm.requestedHex.collectAsStateWithLifecycle()
                 Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
                     settings?.let { s ->

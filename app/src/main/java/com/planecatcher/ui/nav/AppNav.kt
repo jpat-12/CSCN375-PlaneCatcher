@@ -1,8 +1,18 @@
 package com.planecatcher.ui.nav
 
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.planecatcher.ui.onboarding.OnboardingViewModel
+import com.planecatcher.ui.onboarding.TutorialCatch
+import com.planecatcher.ui.progress.ProgressScreen
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Collections
+import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.Radar
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
@@ -36,6 +46,8 @@ private object Routes {
     const val HOME = "home"
     const val COLLECTION = "collection"
     const val SETTINGS = "settings"
+    const val PROGRESS = "progress"
+    const val TUTORIAL = "tutorial"
     const val QUIZ = "quiz/{hex}"
     const val DETAIL = "detail/{hex}"
     fun quiz(hex: String) = "quiz/$hex"
@@ -47,6 +59,7 @@ private data class Tab(val route: String, val label: String, val icon: ImageVect
 private val tabs = listOf(
     Tab(Routes.HOME, "Radar", Icons.Filled.Radar),
     Tab(Routes.COLLECTION, "Collection", Icons.Filled.Collections),
+    Tab(Routes.PROGRESS, "Progress", Icons.Filled.EmojiEvents),
     Tab(Routes.SETTINGS, "Settings", Icons.Filled.Settings),
 )
 
@@ -101,12 +114,20 @@ fun AppNav(
                     requestedHex = requestedHex,
                     onRequestHandled = onRequestHandled,
                     onStartCatch = { hex -> nav.navigate(Routes.quiz(hex)) },
+                    onOpenProgress = { nav.switchTab(Routes.PROGRESS) },
                 )
             }
             composable(Routes.COLLECTION) {
                 CollectionScreen(onOpen = { hex -> nav.navigate(Routes.detail(hex)) })
             }
-            composable(Routes.SETTINGS) { SettingsScreen() }
+            composable(Routes.PROGRESS) { ProgressScreen() }
+            composable(Routes.SETTINGS) { SettingsScreen(onReplayTutorial = { nav.navigate(Routes.TUTORIAL) }) }
+            composable(Routes.TUTORIAL) {
+                val vm: OnboardingViewModel = hiltViewModel()
+                Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(24.dp)) {
+                    TutorialCatch(onPlay = vm::play, onDone = { nav.popBackStack() })
+                }
+            }
             composable(Routes.QUIZ, arguments = listOf(navArgument("hex") { type = NavType.StringType })) {
                 QuizScreen(
                     onDone = { nav.popBackStack() },

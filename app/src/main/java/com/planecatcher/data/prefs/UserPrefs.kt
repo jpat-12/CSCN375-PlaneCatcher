@@ -26,6 +26,14 @@ data class UserSettings(
     val useMetric: Boolean = false,
     /** Keep the radar running in a foreground service while the app is closed. */
     val backgroundRadar: Boolean = false,
+    val soundsEnabled: Boolean = true,
+    val hapticsEnabled: Boolean = true,
+    /** Light, extra-high-contrast colours for bright sunlight. */
+    val sunlightMode: Boolean = false,
+    /** Bigger text (and so bigger buttons) for use outdoors or at arm's length. */
+    val largeText: Boolean = false,
+    /** Keep the screen on while the radar is open. */
+    val keepScreenOn: Boolean = true,
 )
 
 private val Context.dataStore by preferencesDataStore(name = "user_state")
@@ -38,6 +46,11 @@ class UserPrefs @Inject constructor(@ApplicationContext private val context: Con
         val minAlertTier = stringPreferencesKey("min_alert_tier")
         val useMetric = booleanPreferencesKey("use_metric")
         val backgroundRadar = booleanPreferencesKey("background_radar")
+        val sounds = booleanPreferencesKey("sounds")
+        val haptics = booleanPreferencesKey("haptics")
+        val sunlight = booleanPreferencesKey("sunlight_mode")
+        val largeText = booleanPreferencesKey("large_text")
+        val keepScreenOn = booleanPreferencesKey("keep_screen_on")
 
         val jumpCode = stringPreferencesKey("jump_code")
         val jumpName = stringPreferencesKey("jump_name")
@@ -56,6 +69,11 @@ class UserPrefs @Inject constructor(@ApplicationContext private val context: Con
             minAlertTier = Tier.fromName(p[Keys.minAlertTier]) ?: Tier.COMMON,
             useMetric = p[Keys.useMetric] ?: false,
             backgroundRadar = p[Keys.backgroundRadar] ?: false,
+            soundsEnabled = p[Keys.sounds] ?: true,
+            hapticsEnabled = p[Keys.haptics] ?: true,
+            sunlightMode = p[Keys.sunlight] ?: false,
+            largeText = p[Keys.largeText] ?: false,
+            keepScreenOn = p[Keys.keepScreenOn] ?: true,
         )
     }.distinctUntilChanged()
 
@@ -81,6 +99,11 @@ class UserPrefs @Inject constructor(@ApplicationContext private val context: Con
     suspend fun setMinAlertTier(t: Tier) = context.dataStore.edit { it[Keys.minAlertTier] = t.name }
     suspend fun setUseMetric(v: Boolean) = context.dataStore.edit { it[Keys.useMetric] = v }
     suspend fun setBackgroundRadar(v: Boolean) = context.dataStore.edit { it[Keys.backgroundRadar] = v }
+    suspend fun setSounds(v: Boolean) = context.dataStore.edit { it[Keys.sounds] = v }
+    suspend fun setHaptics(v: Boolean) = context.dataStore.edit { it[Keys.haptics] = v }
+    suspend fun setSunlightMode(v: Boolean) = context.dataStore.edit { it[Keys.sunlight] = v }
+    suspend fun setLargeText(v: Boolean) = context.dataStore.edit { it[Keys.largeText] = v }
+    suspend fun setKeepScreenOn(v: Boolean) = context.dataStore.edit { it[Keys.keepScreenOn] = v }
 
     suspend fun setJumpState(s: JumpState) = context.dataStore.edit { p ->
         val t = s.target

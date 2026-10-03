@@ -32,7 +32,7 @@ import com.planecatcher.core.model.Tier
 import com.planecatcher.service.RadarService
 
 @Composable
-fun SettingsScreen(vm: SettingsViewModel = hiltViewModel()) {
+fun SettingsScreen(onReplayTutorial: () -> Unit, vm: SettingsViewModel = hiltViewModel()) {
     val settings by vm.settings.collectAsStateWithLifecycle()
     val s = settings ?: return
     val context = LocalContext.current
@@ -82,8 +82,18 @@ fun SettingsScreen(vm: SettingsViewModel = hiltViewModel()) {
             }
         }
 
-        Section("Display")
+        Section("Sound and vibration")
+        ToggleRow("Sounds", "Radar ping, catch and miss sounds", s.soundsEnabled, vm::setSounds)
+        ToggleRow("Vibration", "Buzz on new planes, catches and misses", s.hapticsEnabled, vm::setHaptics)
+
+        Section("Display and outdoors")
+        ToggleRow("Sunlight mode", "Bright, extra-high-contrast colours that are easier to read outside", s.sunlightMode, vm::setSunlight)
+        ToggleRow("Larger text and buttons", "Makes everything easier to read and tap", s.largeText, vm::setLargeText)
+        ToggleRow("Keep screen on", "Stop the screen sleeping while the radar is open", s.keepScreenOn, vm::setKeepScreenOn)
         ToggleRow("Metric units", "Kilometres and metres instead of miles and feet", s.useMetric, vm::setMetric)
+
+        Section("Help")
+        Link("Replay the practice catch", onReplayTutorial)
 
         Section("Safety")
         Text(
@@ -93,6 +103,7 @@ fun SettingsScreen(vm: SettingsViewModel = hiltViewModel()) {
 
         Section("Data and credits")
         Link("Flight data: adsb.fi (backup: adsb.lol)") { uri.openUri("https://adsb.fi") }
+        Link("Map tiles: © OpenStreetMap contributors") { uri.openUri("https://www.openstreetmap.org/copyright") }
         Link("Aircraft photos: planespotters.net and their photographers") { uri.openUri("https://www.planespotters.net") }
         Text(
             "Airline and aircraft names are used only to describe real aircraft. PlaneCatcher is not affiliated with any airline or manufacturer.",

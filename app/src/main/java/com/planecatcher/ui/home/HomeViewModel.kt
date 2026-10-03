@@ -13,7 +13,11 @@ import com.planecatcher.data.local.QuizLockDao
 import com.planecatcher.data.prefs.UserPrefs
 import com.planecatcher.data.prefs.UserSettings
 import com.planecatcher.data.time.TrustedClock
+import com.planecatcher.core.progress.ProgressSummary
 import com.planecatcher.domain.JumpManager
+import com.planecatcher.domain.ProgressRepository
+import com.planecatcher.feedback.Feedback
+import com.planecatcher.feedback.Sfx
 import com.planecatcher.domain.RadarState
 import com.planecatcher.domain.RadarTracker
 import com.planecatcher.domain.ticker
@@ -55,6 +59,8 @@ class HomeViewModel @Inject constructor(
     private val jumpManager: JumpManager,
     private val photos: PhotoRepository,
     private val clock: TrustedClock,
+    private val feedback: Feedback,
+    progressRepository: ProgressRepository,
     caughtDao: CaughtPlaneDao,
     lockDao: QuizLockDao,
     prefs: UserPrefs,
@@ -92,6 +98,9 @@ class HomeViewModel @Inject constructor(
         HomeUiState(radar, jump, caughtSet, lockMap, settings, popup, nowMs)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), HomeUiState())
 
+    val progress: StateFlow<ProgressSummary?> = progressRepository.summary
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+
     init {
         // Auto pop-up: the nearest uncaught, unlocked plane that hasn't been shown or recently dismissed.
         viewModelScope.launch {
@@ -115,6 +124,7 @@ class HomeViewModel @Inject constructor(
                 if (candidate != null) {
                     autoShown += candidate.hex
                     open(candidate)
+                    feedback.play(Sfx.PING)
                 }
             }
         }

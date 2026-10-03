@@ -16,6 +16,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -27,7 +28,7 @@ import com.planecatcher.ui.theme.color
 fun TierBadge(tier: Tier, modifier: Modifier = Modifier) {
     Text(
         text = tier.displayName.uppercase(),
-        color = Color.Black,
+        color = if (tier.color.luminance() > 0.4f) Color.Black else Color.White,
         style = MaterialTheme.typography.labelSmall,
         fontWeight = FontWeight.ExtraBold,
         modifier = modifier

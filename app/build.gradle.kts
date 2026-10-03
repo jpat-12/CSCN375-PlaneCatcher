@@ -86,6 +86,7 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
 
     implementation(libs.coil.compose)
+    implementation(libs.osmdroid)
 
     testImplementation(libs.junit)
 }
