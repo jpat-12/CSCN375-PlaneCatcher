@@ -51,8 +51,6 @@ fun JumpSheet(onPick: (JumpTarget) -> Unit, onDismiss: () -> Unit) {
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
-        // On the map tab, drags pan the map instead of dragging the sheet closed.
-        sheetGesturesEnabled = tab == 0,
     ) {
         Column(Modifier.padding(horizontal = 20.dp)) {
             Text("Location Jump", style = MaterialTheme.typography.titleLarge)
