@@ -12,6 +12,14 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.background
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
@@ -29,8 +37,6 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Tab
-import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -61,18 +67,27 @@ fun CollectionScreen(onOpen: (String) -> Unit, vm: CollectionViewModel = hiltVie
     val progress by vm.progress.collectAsStateWithLifecycle()
     var tab by rememberSaveable { mutableIntStateOf(0) }
 
-    Column(Modifier.fillMaxSize()) {
-        Column(Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Text("Collection", style = MaterialTheme.typography.headlineMedium)
-            Row(horizontalArrangement = Arrangement.spacedBy(24.dp)) {
-                Stat("${state.totalCaught}", "planes")
-                Stat("${progress?.typesCaught ?: 0}/${progress?.book?.size ?: 0}", "types")
-                Stat("${progress?.totalPoints ?: state.totalPoints}", "points")
-            }
+    Column(Modifier.fillMaxSize().padding(top = 72.dp)) {
+        FeaturedPlane(best(state.planes), onOpen)
+        Row(
+            Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 8.dp),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+        ) {
+            Stat("${state.totalCaught}", "planes")
+            Stat("${progress?.typesCaught ?: 0}/${progress?.book?.size ?: 0}", "types")
+            Stat("${progress?.totalPoints ?: state.totalPoints}", "points")
         }
-        TabRow(selectedTabIndex = tab, modifier = Modifier.padding(top = 8.dp)) {
+        Row(
+            Modifier.fillMaxWidth().padding(horizontal = 16.dp).horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
             tabs.forEachIndexed { i, title ->
-                Tab(selected = tab == i, onClick = { tab = i }, text = { Text(title) })
+                FilterChip(
+                    selected = tab == i,
+                    onClick = { tab = i },
+                    label = { Text(title) },
+                    shape = RoundedCornerShape(50),
+                )
             }
         }
         when (tab) {
@@ -91,11 +106,11 @@ fun CollectionScreen(onOpen: (String) -> Unit, vm: CollectionViewModel = hiltVie
 @Composable
 private fun PlanesTab(state: CollectionUiState, vm: CollectionViewModel, onOpen: (String) -> Unit) {
     LazyVerticalGrid(
-        columns = GridCells.Adaptive(minSize = 160.dp),
+        columns = GridCells.Fixed(3),
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(16.dp),
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         item(span = { GridItemSpan(maxLineSpan) }) {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -132,7 +147,7 @@ private fun PlanesTab(state: CollectionUiState, vm: CollectionViewModel, onOpen:
             }
         }
 
-        items(state.planes, key = { it.hex }) { plane -> PlaneCard(plane, onClick = { onOpen(plane.hex) }) }
+        items(state.planes, key = { it.hex }) { plane -> PlaneTile(plane, onClick = { onOpen(plane.hex) }) }
     }
 }
 
@@ -275,24 +290,89 @@ private fun Stat(value: String, label: String) {
     }
 }
 
+/** Square rounded tile like the mockup: the plane's photo, or a tier-coloured plane if there's no photo. */
 @Composable
-private fun PlaneCard(plane: CaughtPlaneEntity, onClick: () -> Unit) {
-    Card(
-        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
-        border = BorderStroke(2.dp, plane.tier.color),
+private fun PlaneTile(plane: CaughtPlaneEntity, onClick: () -> Unit) {
+    Box(
+        Modifier
+            .aspectRatio(1f)
+            .clip(RoundedCornerShape(20.dp))
+            .background(MaterialTheme.colorScheme.surfaceContainerHigh)
+            .clickable(onClick = onClick),
+        contentAlignment = Alignment.Center,
     ) {
-        PlanePhoto(plane.photoUrl, null, Modifier.fillMaxWidth().aspectRatio(4f / 3f))
-        Column(Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            TierBadge(plane.tier)
-            Text(
-                plane.typeName ?: plane.typeCode ?: "Unknown type",
-                style = MaterialTheme.typography.titleSmall,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
+        if (plane.photoUrl != null) {
+            PlanePhoto(plane.photoUrl, null, Modifier.fillMaxSize())
+        } else {
+            Icon(
+                Icons.Filled.Flight,
+                contentDescription = null,
+                tint = plane.tier.color,
+                modifier = Modifier.fillMaxSize(0.62f).rotate(45f),
             )
-            Text(plane.registration ?: plane.callsign ?: plane.hex.uppercase(), color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
-            Text(formatDate(plane.caughtAt), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+        Box(
+            Modifier
+                .align(Alignment.TopEnd)
+                .padding(8.dp)
+                .size(12.dp)
+                .background(plane.tier.color, CircleShape),
+        )
+        Text(
+            plane.typeCode ?: "?",
+            style = MaterialTheme.typography.labelMedium,
+            color = Color.White,
+            modifier = Modifier
+                .align(Alignment.BottomStart)
+                .padding(6.dp)
+                .background(Color.Black.copy(alpha = 0.5f), RoundedCornerShape(8.dp))
+                .padding(horizontal = 6.dp, vertical = 1.dp),
+        )
+    }
+}
+
+private fun best(list: List<CaughtPlaneEntity>): CaughtPlaneEntity? =
+    list.maxWithOrNull(compareBy<CaughtPlaneEntity> { it.tier.ordinal }.thenBy { it.caughtAt })
+
+/** The big plane at the top of the mockup: your rarest (then newest) catch. */
+@Composable
+private fun FeaturedPlane(plane: CaughtPlaneEntity?, onOpen: (String) -> Unit) {
+    Column(
+        Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Box(
+            Modifier
+                .fillMaxWidth()
+                .height(170.dp)
+                .clip(RoundedCornerShape(28.dp))
+                .then(if (plane != null) Modifier.clickable { onOpen(plane.hex) } else Modifier),
+            contentAlignment = Alignment.Center,
+        ) {
+            if (plane?.photoUrl != null) {
+                PlanePhoto(plane.photoUrl, plane.tier, Modifier.fillMaxSize())
+            } else {
+                Icon(
+                    Icons.Filled.Flight,
+                    contentDescription = null,
+                    tint = plane?.tier?.color ?: Color(0xFFE53935),
+                    modifier = Modifier.size(150.dp).rotate(45f),
+                )
+            }
+        }
+        if (plane != null) {
+            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 6.dp)) {
+                Text(
+                    plane.typeName ?: plane.typeCode ?: "Unknown type",
+                    style = MaterialTheme.typography.titleMedium,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                TierBadge(plane.tier, Modifier.padding(start = 8.dp))
+            }
+            Text("Your best catch", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        } else {
+            Text("Catch your first plane on the Camera tab", style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(top = 6.dp))
         }
     }
 }

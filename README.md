@@ -1,6 +1,6 @@
-# PlaneCatcher
+# Blip (PlaneCatcher)
 
-A plane-collecting hobby app for Android. Real aircraft flying within 10 miles show up on a radar. Answer a multiple-choice question about a plane to catch it, then build a collection ranked by rarity. Plane data comes from [adsb.fi](https://adsb.fi) (with [adsb.lol](https://adsb.lol) as a backup) and photos from [planespotters.net](https://www.planespotters.net).
+Blip is a plane-collecting hobby app for Android. Real aircraft flying within 10 miles show up on a radar. Answer a multiple-choice question about a plane to catch it, then build a collection ranked by rarity. Plane data comes from [adsb.fi](https://adsb.fi) (with [adsb.lol](https://adsb.lol) as a backup) and photos from [planespotters.net](https://www.planespotters.net).
 
 CSCN 375 project by Nathaniel Cash and Robert Vander Pyl.
 
@@ -9,7 +9,9 @@ CSCN 375 project by Nathaniel Cash and Robert Vander Pyl.
 | Feature | Where |
 | --- | --- |
 | Live planes within 10 mi from adsb.fi (query 9 nm, filter on device with Haversine), poll every 30 s, back off 60 s on errors or HTTP 429 | `domain/RadarTracker.kt`, `core/radar/Radar.kt` |
-| Radar view with sweep, tier-coloured blips and a nearby list | `ui/home/` |
+| Layout from the presentation mockup: top pill switcher (Collection, Camera, Map), profile button for progress and settings, charcoal theme with the Nunito font | `ui/nav/AppNav.kt`, `ui/theme/Theme.kt` |
+| Camera tab: live viewfinder with scan brackets; the compass picks the plane the camera points at and an "Identified Aircraft" panel offers the catch. Falls back to a radar view without a camera | `ui/home/CameraScreen.kt` |
+| Map tab: OpenStreetMap with the 10-mile ring, tier-coloured plane markers pointing along each plane's heading, and a Nearby Aircraft list | `ui/home/MapScreen.kt` |
 | Pop-up with photo, photographer credit, type, callsign and tier; silhouette when there's no photo | `ui/home/PlanePopup.kt` |
 | Quiz gate: 4 options, curated questions for popular types, generated fallback (model, maker, engines, seats, airline, registration country, altitude) | `core/quiz/` |
 | Wrong answer locks that plane for 1 hour; the retry gets a different question | `core/rules/QuizLock.kt`, `domain/CatchManager.kt` |
@@ -24,7 +26,7 @@ CSCN 375 project by Nathaniel Cash and Robert Vander Pyl.
 | Outdoor options: sunlight mode (light, extra-high-contrast theme), larger text and buttons, keep screen on while the radar is open | `ui/theme/Theme.kt`, `ui/settings/` |
 | Mock-location detection blocks catches (except during a jump) | `data/location/LocationSource.kt` |
 
-The UI is dark and high-contrast, and the collection is stored only on the device, so it works offline. Both choices come from the user interviews: people use the app outdoors, and they wanted it to work without a connection.
+The UI follows the mockup in the class presentation. It's dark and high-contrast, and the collection is stored only on the device, so it works offline. Both choices come from the user interviews: people use the app outdoors, and they wanted it to work without a connection.
 
 ## Project layout
 

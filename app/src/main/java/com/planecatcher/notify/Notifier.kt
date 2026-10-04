@@ -63,7 +63,7 @@ class Notifier @Inject constructor(@ApplicationContext private val context: Cont
     fun radarNotification(text: String): Notification =
         NotificationCompat.Builder(context, CHANNEL_RADAR)
             .setSmallIcon(R.drawable.ic_stat_plane)
-            .setContentTitle("PlaneCatcher radar is on")
+            .setContentTitle("Blip radar is on")
             .setContentText(text)
             .setOngoing(true)
             .setOnlyAlertOnce(true)

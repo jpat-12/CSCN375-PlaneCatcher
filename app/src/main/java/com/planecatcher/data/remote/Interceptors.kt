@@ -18,7 +18,7 @@ class ServerTimeInterceptor(private val clock: TrustedClock) : Interceptor {
 class UserAgentInterceptor : Interceptor {
     override fun intercept(chain: Interceptor.Chain): Response = chain.proceed(
         chain.request().newBuilder()
-            .header("User-Agent", "PlaneCatcher/${BuildConfig.VERSION_NAME} (+$CONTACT_URL)")
+            .header("User-Agent", "Blip/${BuildConfig.VERSION_NAME} (+$CONTACT_URL)")
             .build(),
     )
 }

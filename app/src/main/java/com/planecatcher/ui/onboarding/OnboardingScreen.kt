@@ -85,7 +85,7 @@ fun OnboardingScreen(onFinished: () -> Unit, vm: OnboardingViewModel = hiltViewM
             2 -> {
                 Title("Find planes near you")
                 Body(
-                    "PlaneCatcher uses your location to look up aircraft overhead. It is only used while " +
+                    "Blip uses your location to look up aircraft overhead. It is only used while " +
                         "the radar is running and is never shared beyond plane-data requests.",
                 )
                 Button(

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">PlaneCatcher</string>
+    <string name="app_name">Blip</string>
     <string name="channel_nearby_name">Planes nearby</string>
     <string name="channel_nearby_desc">Alerts when a plane you can catch enters range</string>
     <string name="channel_radar_name">Radar running</string>

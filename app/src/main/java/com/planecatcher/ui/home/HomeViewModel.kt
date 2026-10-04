@@ -15,6 +15,7 @@ import com.planecatcher.data.prefs.UserSettings
 import com.planecatcher.data.time.TrustedClock
 import com.planecatcher.core.progress.ProgressSummary
 import com.planecatcher.domain.JumpManager
+import com.planecatcher.domain.PopupMemory
 import com.planecatcher.domain.ProgressRepository
 import com.planecatcher.feedback.Feedback
 import com.planecatcher.feedback.Sfx
@@ -60,6 +61,7 @@ class HomeViewModel @Inject constructor(
     private val photos: PhotoRepository,
     private val clock: TrustedClock,
     private val feedback: Feedback,
+    private val popupMemory: PopupMemory,
     progressRepository: ProgressRepository,
     caughtDao: CaughtPlaneDao,
     lockDao: QuizLockDao,
@@ -69,8 +71,8 @@ class HomeViewModel @Inject constructor(
     private data class PopupSelection(val plane: NearbyPlane, val photo: PlanePhoto?, val loading: Boolean)
 
     private val selection = MutableStateFlow<PopupSelection?>(null)
-    private val dismissedAt = mutableMapOf<String, Long>()
-    private val autoShown = mutableSetOf<String>()
+    private val dismissedAt get() = popupMemory.dismissedAt
+    private val autoShown get() = popupMemory.autoShown
     private var photoJob: Job? = null
     private var holding = false
     /** A plane a notification asked us to show, waiting for the radar to report it. */
@@ -162,6 +164,8 @@ class HomeViewModel @Inject constructor(
     }
 
     fun refresh() = tracker.refreshNow()
+
+    suspend fun photoFor(hex: String): PlanePhoto? = photos.photoFor(hex)
 
     fun activateJump(target: JumpTarget) {
         viewModelScope.launch { jumpManager.activate(target) }

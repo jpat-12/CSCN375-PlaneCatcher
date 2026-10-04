@@ -97,7 +97,7 @@ fun SettingsScreen(onReplayTutorial: () -> Unit, vm: SettingsViewModel = hiltVie
 
         Section("Safety")
         Text(
-            "Never use PlaneCatcher while driving. You never need to move toward a plane to catch it: " +
+            "Never use Blip while driving. You never need to move toward a plane to catch it: " +
                 "planes come to you.",
         )
 
@@ -106,7 +106,7 @@ fun SettingsScreen(onReplayTutorial: () -> Unit, vm: SettingsViewModel = hiltVie
         Link("Map tiles: © OpenStreetMap contributors") { uri.openUri("https://www.openstreetmap.org/copyright") }
         Link("Aircraft photos: planespotters.net and their photographers") { uri.openUri("https://www.planespotters.net") }
         Text(
-            "Airline and aircraft names are used only to describe real aircraft. PlaneCatcher is not affiliated with any airline or manufacturer.",
+            "Airline and aircraft names are used only to describe real aircraft. Blip is not affiliated with any airline or manufacturer.",
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
 
